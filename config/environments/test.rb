@@ -1,0 +1,35 @@
+require "active_support/core_ext/integer/time"
+
+Rails.application.configure do
+  config.enable_reloading = false
+  config.eager_load = false
+  config.consider_all_requests_local = true
+  config.cache_store = :null_store
+
+  config.action_dispatch.show_exceptions = :rescuable
+
+  config.action_controller.allow_forgery_protection = false
+
+  config.action_mailer.perform_caching = false
+  config.action_mailer.delivery_method = :test
+
+  config.active_support.deprecation = :stderr
+  config.active_support.disallowed_deprecation = :raise
+  config.active_support.disallowed_deprecation_warnings = []
+
+  # No per-request pending-migration check in tests: it runs on whichever
+  # request spec happens to go first, and Rails 7.2 rejects migration
+  # timestamps "in the future" — so a spec that travels back in time
+  # before the newest migration failed at random. spec/rails_helper.rb
+  # checks once at boot instead, at the real current time.
+  config.active_record.migration_error = false
+  config.active_record.dump_schema_after_migration = false
+
+
+  # Jobs are queued, not run in background threads (:async, the app's
+  # default outside production): a job still running in its own thread
+  # after a spec ends shares that spec's database connection and can
+  # hang the whole run. Specs that run a job call perform_now or
+  # perform_enqueued_jobs.
+  config.active_job.queue_adapter = :test
+end

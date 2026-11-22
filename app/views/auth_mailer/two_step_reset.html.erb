@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px; color: #392316;">
+  <h2 style="font-size: 22px; margin-bottom: 8px;">Your two-step sign-in was reset</h2>
+  <p style="color: #555; margin-bottom: 16px;">
+    <%= ERB::Util.h(by_name) %> at <%= ERB::Util.h(church_name) %> reset two-step sign-in on your Cayado account.
+    Your authenticator app and recovery codes no longer work.
+  </p>
+  <p style="color: #555; margin-bottom: 16px;">
+    Next time you sign in, you'll only need your password. If two-step is required for you, you'll be asked to set it up again.
+  </p>
+  <p style="margin-top: 24px; font-size: 12px; color: #aaa;">
+    If you didn't ask for this, contact <%= ERB::Util.h(church_name) %> and change your password.
+  </p>
+</body>
+</html>
