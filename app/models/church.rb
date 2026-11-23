@@ -11,6 +11,9 @@ class Church < ApplicationRecord
   has_many :roadmap_items, class_name: "Cayado::RoadmapItem", dependent: :destroy
   has_many :topics, -> { order(:position, :id) }, class_name: "Cayado::Topic", dependent: :destroy
   has_many :activity_events, class_name: "Cayado::ActivityEvent", dependent: :delete_all
+  has_many :weekly_metrics, class_name: "Cayado::WeeklyMetric", dependent: :delete_all
+  has_many :budgets, class_name: "Cayado::Budget", dependent: :delete_all
+  has_many :congregation_snapshots, class_name: "Cayado::CongregationSnapshot", dependent: :destroy
 
   after_create do
     Cayado::Ministry.create_defaults!(self)

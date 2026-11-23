@@ -51,6 +51,14 @@ Cayado::Engine.routes.draw do
       # The teaching-diet heatmap (index) and the topic library (admin).
       resources :topics, only: [:index, :create, :update, :destroy]
 
+      # Health of the church: whole-church numbers only. Admins type the
+      # weekly numbers, budget and snapshots in until Planning Center does.
+      resource :dashboard, only: [:show], controller: "dashboard"
+      resource :congregation, only: [:show], controller: "congregation"
+      resources :weekly_metrics, only: [:index, :update, :destroy], param: :week_of
+      resources :budgets, only: [:update, :destroy], param: :year
+      resources :congregation_snapshots, only: [:create, :update, :destroy]
+
       resources :sermon_series, only: [:index, :show, :create, :update, :destroy] do
         resources :weeks, only: [:create], controller: "sermon_weeks"
         resources :attachments, only: [:index, :create]
@@ -60,6 +68,8 @@ Cayado::Engine.routes.draw do
         resource :notify, only: [:show, :create], controller: "notify"
       end
       resources :sermon_weeks, only: [:show, :update, :destroy] do
+        # Admin: pin (PUT) or unpin (DELETE) a congregation snapshot.
+        resource :snapshot, only: [:update, :destroy], controller: "sermon_week_snapshots"
         # The slot is named by ministry key: /plans/kids.
         resources :plans, only: [:update, :destroy], param: :ministry_key, controller: "alignment_plans"
         resources :comments, only: [:create]

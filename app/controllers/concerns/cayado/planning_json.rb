@@ -67,6 +67,7 @@ module Cayado
         big_idea: week.big_idea,
         slots: ministries.map { slot_json(_1, plans[_1.id]) },
         comments_count: week.comments.size,
+        congregation_snapshot_id: week.congregation_snapshot_id,
       }
     end
 

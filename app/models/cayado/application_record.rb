@@ -20,7 +20,7 @@ module Cayado
       when ::Membership then record.church
       when Cayado::Move then record.pillar&.vision&.church
       when Cayado::Pillar then record.vision&.church
-      when Cayado::Ministry, Cayado::Topic, Cayado::SermonSeries then record.church
+      when Cayado::Ministry, Cayado::Topic, Cayado::SermonSeries, Cayado::CongregationSnapshot then record.church
       end
     end
   end

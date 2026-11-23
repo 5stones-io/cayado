@@ -4,10 +4,11 @@ module Cayado
       # GET /api/v1/this_week: the home screen (web This Week, mobile home).
       # The Sunday ahead and its alignment slots, the next two weeks, which
       # pillar the coming month advances, and what needs the pastor's eye.
-      # last_sunday and congregation_note stay null until Planning Center
-      # aggregates exist.
+      # Last Sunday's numbers and the congregation snapshot pinned to the
+      # week ahead, when there are any.
       class ThisWeekController < BaseController
         include Cayado::PlanningJson
+        include Cayado::HealthJson
 
         # How many Sundays (from the one ahead) the vision pulse and the
         # attention list look at.
@@ -31,8 +32,8 @@ module Cayado
             coming_up: ahead.drop(1).first(COMING_UP).map { coming_up_json(_1) },
             vision_pulse: vision_pulse(window),
             attention: attention(window),
-            last_sunday: nil,
-            congregation_note: nil,
+            last_sunday: HealthStats.new(Current.church, today: today).last_sunday,
+            congregation_note: week && snapshot_json(week.congregation_snapshot, pinned: false),
           }
         end
 
