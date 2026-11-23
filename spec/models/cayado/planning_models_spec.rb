@@ -25,6 +25,16 @@ RSpec.describe "Planning models" do
     end
   end
 
+  describe Cayado::Topic do
+    it "gives every new church the twelve-topic library, in order, names unique per church" do
+      church = create(:church)
+
+      expect(church.topics.pluck(:name)).to eq(Cayado::Topic::DEFAULTS)
+      expect(church.topics.new(name: "Prayer")).not_to be_valid
+      expect(create(:church).topics.new(name: "Sabbath")).to be_valid
+    end
+  end
+
   describe Cayado::Pillar do
     it "only takes the tones the design has" do
       expect(build(:pillar, tone: "sage")).to be_valid

@@ -8,9 +8,14 @@ class Church < ApplicationRecord
   has_many :ministries, -> { order(:position, :id) }, class_name: "Cayado::Ministry", dependent: :destroy
   has_one  :vision, class_name: "Cayado::Vision", dependent: :destroy
   has_many :sermon_series, class_name: "Cayado::SermonSeries", dependent: :destroy
+  has_many :roadmap_items, class_name: "Cayado::RoadmapItem", dependent: :destroy
+  has_many :topics, -> { order(:position, :id) }, class_name: "Cayado::Topic", dependent: :destroy
   has_many :activity_events, class_name: "Cayado::ActivityEvent", dependent: :delete_all
 
-  after_create { Cayado::Ministry.create_defaults!(self) }
+  after_create do
+    Cayado::Ministry.create_defaults!(self)
+    Cayado::Topic.create_defaults!(self)
+  end
 
   validates :slug, presence: true, uniqueness: true,
                    format: { with: /\A[a-z0-9]([a-z0-9\-]*[a-z0-9])?\z/, message: "must be lowercase letters, numbers, and hyphens" }

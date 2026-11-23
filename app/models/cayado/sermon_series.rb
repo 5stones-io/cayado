@@ -7,6 +7,13 @@ module Cayado
     belongs_to :move, optional: true
     has_many :weeks, -> { order(:position, :preached_on) }, class_name: "Cayado::SermonWeek",
                                                             dependent: :destroy, inverse_of: :sermon_series
+    has_many :series_topics, dependent: :delete_all
+    has_many :attachments, as: :attachable, dependent: :destroy
+
+    scope :in_year, lambda { |year|
+      where(starts_on: ..Date.new(year, 12, 31))
+        .where("COALESCE(cayado_sermon_series.ends_on, cayado_sermon_series.starts_on) >= ?", Date.new(year, 1, 1))
+    }
 
     validates :title, presence: true
     validate :ends_after_start

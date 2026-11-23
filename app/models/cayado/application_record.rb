@@ -19,7 +19,8 @@ module Cayado
       case record
       when ::Membership then record.church
       when Cayado::Move then record.pillar&.vision&.church
-      when Cayado::Ministry then record.church
+      when Cayado::Pillar then record.vision&.church
+      when Cayado::Ministry, Cayado::Topic, Cayado::SermonSeries then record.church
       end
     end
   end
