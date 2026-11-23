@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_11_22_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_11_23_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -56,6 +56,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_22_000003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_accounts_on_email", unique: true, where: "(status_id <> 3)"
+  end
+
+  create_table "cayado_activity_events", force: :cascade do |t|
+    t.bigint "church_id", null: false
+    t.bigint "actor_membership_id"
+    t.string "kind", null: false
+    t.bigint "sermon_series_id"
+    t.bigint "sermon_week_id"
+    t.jsonb "data", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["actor_membership_id"], name: "index_cayado_activity_events_on_actor_membership_id"
+    t.index ["church_id", "id"], name: "index_cayado_activity_events_on_church_id_and_id"
+    t.index ["sermon_series_id"], name: "index_cayado_activity_events_on_sermon_series_id"
+    t.index ["sermon_week_id"], name: "index_cayado_activity_events_on_sermon_week_id"
   end
 
   create_table "cayado_alignment_plans", force: :cascade do |t|
@@ -205,6 +220,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_22_000003) do
     t.string "title"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "activity_seen_at"
     t.index ["account_id", "church_id"], name: "index_memberships_on_account_id_and_church_id", unique: true
     t.index ["church_id"], name: "index_memberships_on_church_id"
   end
@@ -215,6 +231,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_22_000003) do
   add_foreign_key "account_password_codes", "accounts", column: "id"
   add_foreign_key "account_password_hashes", "accounts", column: "id"
   add_foreign_key "account_recovery_codes", "accounts", column: "id"
+  add_foreign_key "cayado_activity_events", "cayado_sermon_series", column: "sermon_series_id", on_delete: :cascade
+  add_foreign_key "cayado_activity_events", "cayado_sermon_weeks", column: "sermon_week_id", on_delete: :cascade
+  add_foreign_key "cayado_activity_events", "churches"
+  add_foreign_key "cayado_activity_events", "memberships", column: "actor_membership_id", on_delete: :nullify
   add_foreign_key "cayado_alignment_plans", "cayado_ministries", column: "ministry_id"
   add_foreign_key "cayado_alignment_plans", "cayado_sermon_weeks", column: "sermon_week_id"
   add_foreign_key "cayado_alignment_plans", "memberships", column: "updated_by_membership_id", on_delete: :nullify

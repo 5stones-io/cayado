@@ -15,6 +15,8 @@ module Cayado
           plan.updated_by_membership = Current.membership
           return render_errors(plan) unless plan.save
 
+          ActivityEvent.plan_saved!(plan)
+
           render json: slot_json(@ministry, plan)
         end
 

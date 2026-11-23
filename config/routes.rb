@@ -33,8 +33,18 @@ Cayado::Engine.routes.draw do
       # Named by key (/ministries/kids), like the alignment slots.
       resources :ministries, only: [:index, :create, :update, :destroy], param: :key
 
+      # The home screen: the Sunday ahead, what's coming, what needs an eye.
+      resource :this_week, only: [:show], controller: "this_week"
+
+      # What the rest of the team did (mobile Activity tab); seen marks it read.
+      resource :activity, only: [:show], controller: "activity" do
+        post :seen
+      end
+
       resources :sermon_series, only: [:index, :show, :create, :update, :destroy] do
         resources :weeks, only: [:create], controller: "sermon_weeks"
+        # Admin: preview (GET) and send (POST) a heads-up to the ministry leads.
+        resource :notify, only: [:show, :create], controller: "notify"
       end
       resources :sermon_weeks, only: [:show, :update, :destroy] do
         # The slot is named by ministry key: /plans/kids.

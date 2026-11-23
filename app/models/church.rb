@@ -8,6 +8,7 @@ class Church < ApplicationRecord
   has_many :ministries, -> { order(:position, :id) }, class_name: "Cayado::Ministry", dependent: :destroy
   has_one  :vision, class_name: "Cayado::Vision", dependent: :destroy
   has_many :sermon_series, class_name: "Cayado::SermonSeries", dependent: :destroy
+  has_many :activity_events, class_name: "Cayado::ActivityEvent", dependent: :delete_all
 
   after_create { Cayado::Ministry.create_defaults!(self) }
 

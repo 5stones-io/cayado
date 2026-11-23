@@ -54,4 +54,12 @@ FactoryBot.define do
     membership { association :membership, church: sermon_week.sermon_series.church }
     body { "A comment" }
   end
+
+  factory :activity_event, class: "Cayado::ActivityEvent" do
+    association :church
+    actor_membership { association :membership, church: church }
+    kind { "comment_added" }
+    sermon_series { sermon_week&.sermon_series }
+    data { {} }
+  end
 end
