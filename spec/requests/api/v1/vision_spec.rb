@@ -7,13 +7,15 @@ RSpec.describe "GET /api/v1/vision", type: :request do
 
   before { use_tenant_host!(church) }
 
-  it "gives the pillars in order with their moves, editors and the series advancing each move, then the year ladder" do
+  it "gives the pillars in order with their moves, editors and what advances each move, then the year ladder" do
     vision = create(:vision, church: church, title: "2026–2030 Vision", subtitle: "Reach, disciple, send")
     send_pillar = create(:pillar, vision: vision, position: 2, title: "Send", tone: "terracotta")
     disciple = create(:pillar, vision: vision, position: 1, title: "Disciple", tone: "sage", blurb: "Ordinary disciples")
     rooted_move = create(:move, pillar: disciple, position: 1, text: "Re-launch small groups")
     Cayado::PillarEditor.create!(pillar: disciple, membership: linnea)
     rooted = create(:sermon_series, church: church, title: "Rooted", move: rooted_move)
+    launch = create(:roadmap_item, church: church, title: "Small Groups Launch", starts_on: "2026-09-13", move: rooted_move)
+    retreat = create(:roadmap_item, church: church, title: "Leaders Retreat", starts_on: "2026-01-24", move: rooted_move)
     create(:horizon_year, vision: vision, year: 2027, headline: "Year of Multiplication", goals: ["Open Reston"])
     create(:horizon_year, vision: vision, year: 2026, headline: "Year of Foundations", goals: ["Launch Rooted", "Hire"])
 
@@ -26,7 +28,9 @@ RSpec.describe "GET /api/v1/vision", type: :request do
       "id" => disciple.id, "title" => "Disciple", "blurb" => "Ordinary disciples", "tone" => "sage", "can_edit" => true,
       "editors" => [{ "membership_id" => linnea.id, "name" => "Linnea Hoffman", "title" => "Small Groups Director", "initials" => "LH" }],
       "moves" => [{ "id" => rooted_move.id, "text" => "Re-launch small groups",
-                    "sermon_series" => [{ "id" => rooted.id, "title" => "Rooted" }] }]
+                    "sermon_series" => [{ "id" => rooted.id, "title" => "Rooted" }],
+                    "roadmap_items" => [{ "id" => retreat.id, "title" => "Leaders Retreat" },
+                                        { "id" => launch.id, "title" => "Small Groups Launch" }] }]
     )
     expect(json["pillars"].second).to include("id" => send_pillar.id, "can_edit" => false)
     expect(json["years"]).to eq([
