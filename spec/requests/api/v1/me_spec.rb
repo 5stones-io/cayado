@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "GET /api/v1/me", type: :request do
-  let(:church) { create(:church, slug: "jcc", name: "Jubilee Christian Center", display_name: "Jubilee", timezone: "America/New_York") }
+  let(:church) { create(:church, slug: "jcc", name: "Jubilee Christian Center", display_name: "Jubilee", timezone: "America/New_York", city: "Fairfax", state: "VA") }
   let(:account) { create(:account, email: "maya@example.com", first_name: "Maya", last_name: "Okafor") }
 
   before { use_tenant_host!(church) }
@@ -15,7 +15,7 @@ RSpec.describe "GET /api/v1/me", type: :request do
     expect(json).to eq(
       "id" => account.id, "email" => "maya@example.com", "first_name" => "Maya", "last_name" => "Okafor",
       "name" => "Maya Okafor", "role" => "admin", "title" => "Lead Pastor", "admin" => true,
-      "church" => { "name" => "Jubilee", "slug" => "jcc", "timezone" => "America/New_York" }
+      "church" => { "name" => "Jubilee", "slug" => "jcc", "timezone" => "America/New_York", "location" => "Fairfax, VA" }
     )
   end
 
@@ -27,6 +27,18 @@ RSpec.describe "GET /api/v1/me", type: :request do
 
     expect(json).to include("role" => "member", "admin" => false)
     expect(json.dig("church", "timezone")).to eq("America/Chicago")
+  end
+
+  it "gives as much of the church's location as it has" do
+    create(:membership, account: account, church: church)
+
+    church.update!(state: nil)
+    get "/api/v1/me", headers: auth_headers(account)
+    expect(json.dig("church", "location")).to eq("Fairfax")
+
+    church.update!(city: nil)
+    get "/api/v1/me", headers: auth_headers(account)
+    expect(json.dig("church", "location")).to be_nil
   end
 end
 

@@ -21,6 +21,8 @@ module Cayado
               name: church.brand_name,
               slug: church.slug,
               timezone: church.time_zone.tzinfo.name,
+              # "Fairfax, VA", under the church's name in the top bar.
+              location: [church.city, church.state].compact_blank.join(", ").presence,
             },
           }
         end
