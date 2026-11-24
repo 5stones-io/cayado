@@ -185,6 +185,9 @@ RSpec.describe "Password and two-step sign-in", type: :request do
       expect(json["otpauth_url"]).to start_with("otpauth://totp/Cayado:pastor%40example.com?secret=")
       expect(json["qr_svg"]).to start_with("<svg")
 
+      post_json "/auth/otp-setup", json.slice("otp_secret", "otp_raw_secret").merge(otp: "000000"), token: partial
+      expect(json["error"]).to eq("That code didn't work. Check your authenticator app and try again.")
+
       _secret, codes, full = set_up_authenticator!(partial)
       expect(codes.size).to eq(10)
       expect(codes).to all(match(/\A[a-z2-9]{4}-[a-z2-9]{4}-[a-z2-9]{4}\z/))
@@ -205,6 +208,8 @@ RSpec.describe "Password and two-step sign-in", type: :request do
 
         post_json "/auth/otp-auth", { otp: "000000" }, token: partial
         expect(response).to have_http_status(:unauthorized)
+        # Shown as-is on the sign-in screen.
+        expect(json["error"]).to eq("That code didn't work. Check your authenticator app and try again.")
 
         post_json "/auth/otp-auth", { otp: ROTP::TOTP.new(secret_and_codes[0]).now }, token: partial
         expect(response).to have_http_status(:ok)
@@ -224,6 +229,7 @@ RSpec.describe "Password and two-step sign-in", type: :request do
         post_json "/auth/login", email: "pastor@example.com", password: password
         post_json "/auth/recovery-auth", { "recovery-code" => code }, token: json["token"]
         expect(response).to have_http_status(:unauthorized)
+        expect(json["error"]).to eq("That recovery code didn't work. Each one works only once.")
       end
 
       it "can't turn two-step off" do
