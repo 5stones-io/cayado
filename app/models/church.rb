@@ -5,6 +5,11 @@ class Church < ApplicationRecord
   has_many :memberships, dependent: :destroy
   has_many :accounts, through: :memberships
   has_many :custom_domains, dependent: :destroy
+  has_many :ministries, -> { order(:position, :id) }, class_name: "Cayado::Ministry", dependent: :destroy
+  has_one  :vision, class_name: "Cayado::Vision", dependent: :destroy
+  has_many :sermon_series, class_name: "Cayado::SermonSeries", dependent: :destroy
+
+  after_create { Cayado::Ministry.create_defaults!(self) }
 
   validates :slug, presence: true, uniqueness: true,
                    format: { with: /\A[a-z0-9]([a-z0-9\-]*[a-z0-9])?\z/, message: "must be lowercase letters, numbers, and hyphens" }

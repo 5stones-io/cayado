@@ -11,6 +11,12 @@ module Cayado
         before_action :authenticate!
         before_action :require_membership!
 
+        # Lookups are scoped to Current.church, so another church's record
+        # is simply not found.
+        rescue_from ActiveRecord::RecordNotFound do
+          render json: { error: "Not found", code: "not_found" }, status: :not_found
+        end
+
         private
 
         def authenticate!

@@ -15,6 +15,18 @@ Cayado::Engine.routes.draw do
       resource :tenant,   only: [:show], controller: "tenant"
       resource :me,       only: [:show], controller: "me"
       resource :two_step, only: [:show], controller: "two_step"
+
+      resource :vision, only: [:show]
+
+      resources :sermon_series, only: [:index, :show, :create, :update, :destroy] do
+        resources :weeks, only: [:create], controller: "sermon_weeks"
+      end
+      resources :sermon_weeks, only: [:show, :update, :destroy] do
+        # The slot is named by ministry key: /plans/kids.
+        resources :plans, only: [:update, :destroy], param: :ministry_key, controller: "alignment_plans"
+        resources :comments, only: [:create]
+      end
+      resources :comments, only: [:destroy]
     end
   end
 end
