@@ -11,6 +11,8 @@ module Cayado
           comment = week.comments.new(body: params[:body], membership: Current.membership)
           return render_errors(comment) unless comment.save
 
+          ActivityEvent.comment_added!(comment)
+
           render json: comment_json(comment), status: :created
         end
 
