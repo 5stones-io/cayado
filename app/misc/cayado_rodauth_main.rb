@@ -53,6 +53,11 @@ class CayadoRodauthMain < Rodauth::Rails::Auth
     login_lockout_error_flash "Too many tries. Use \"Set up or reset password\" to sign in."
 
     otp_issuer "Cayado"
+    # The sign-in screens show `error` as-is; Rodauth's defaults name TOTP.
+    wrong_code = "That code didn't work. Check your authenticator app and try again."
+    otp_auth_error_flash wrong_code
+    otp_setup_error_flash wrong_code
+    invalid_recovery_code_error_flash "That recovery code didn't work. Each one works only once."
     # Already signed in with a password to get here.
     two_factor_modifications_require_password? false
 
