@@ -6,6 +6,10 @@ Rails.application.configure do
   config.consider_all_requests_local = true
   config.server_timing = true
 
+  # {slug}.localhost:3000 reaches a church: "localhost" has no TLD, so the
+  # default (1) would read jubilee.localhost as a domain with no subdomain.
+  config.action_dispatch.tld_length = 0
+
   config.active_support.deprecation = :log
   config.active_support.disallowed_deprecation = :raise
   config.active_support.disallowed_deprecation_warnings = []
