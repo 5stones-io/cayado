@@ -105,10 +105,12 @@ module Cayado
       }
     end
 
-    # A move and the series that advance it (LinkChips on the Vision screen).
+    # A move and the series and roadmap items that advance it (LinkChips on
+    # the Vision screen); roadmap items by date.
     def move_json(move)
       { id: move.id, text: move.text,
-        sermon_series: move.sermon_series.sort_by(&:id).map { { id: _1.id, title: _1.title } } }
+        sermon_series: move.sermon_series.sort_by(&:id).map { { id: _1.id, title: _1.title } },
+        roadmap_items: move.roadmap_items.sort_by { [_1.starts_on.to_s, _1.id] }.map { { id: _1.id, title: _1.title } } }
     end
 
     def year_json(year)

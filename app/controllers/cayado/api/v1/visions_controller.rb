@@ -10,7 +10,7 @@ module Cayado
 
         def show
           vision = Vision.includes(horizon_years: [], pillars: [{ pillar_editors: { membership: :account } },
-                                                                { moves: :sermon_series }])
+                                                                { moves: %i[sermon_series roadmap_items] }])
                          .find_by(church: Current.church)
           render json: vision && vision_json(vision)
         end
