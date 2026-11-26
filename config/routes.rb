@@ -16,7 +16,22 @@ Cayado::Engine.routes.draw do
       resource :me,       only: [:show], controller: "me"
       resource :two_step, only: [:show], controller: "two_step"
 
-      resource :vision, only: [:show]
+      # Who's on staff, for lead and editor pickers.
+      resource :team, only: [:show], controller: "team"
+
+      # Admins write the vision, its pillars and the year ladder; a pillar's
+      # named editors also write that pillar and its moves.
+      resource :vision, only: [:show, :update] do
+        resources :pillars, only: [:create]
+        resources :years, only: [:update, :destroy], param: :year, controller: "horizon_years"
+      end
+      resources :pillars, only: [:update, :destroy] do
+        resources :moves, only: [:create]
+      end
+      resources :moves, only: [:update, :destroy]
+
+      # Named by key (/ministries/kids), like the alignment slots.
+      resources :ministries, only: [:index, :create, :update, :destroy], param: :key
 
       resources :sermon_series, only: [:index, :show, :create, :update, :destroy] do
         resources :weeks, only: [:create], controller: "sermon_weeks"

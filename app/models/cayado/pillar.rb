@@ -11,6 +11,8 @@ module Cayado
     validates :title, presence: true
     validates :tone, inclusion: { in: TONES }
 
+    scope :for_church, ->(church) { joins(:vision).where(cayado_visions: { church_id: church.id }) }
+
     # Admins edit every pillar; anyone else only the pillars they're named
     # an editor on.
     def editable_by?(membership)

@@ -80,6 +80,45 @@ module Cayado
       }
     end
 
+    def vision_json(vision)
+      {
+        id: vision.id,
+        title: vision.title,
+        subtitle: vision.subtitle,
+        start_year: vision.start_year,
+        end_year: vision.end_year,
+        pillars: vision.pillars.map { pillar_json(_1) },
+        years: vision.horizon_years.map { year_json(_1) },
+      }
+    end
+
+    def pillar_json(pillar)
+      {
+        id: pillar.id,
+        title: pillar.title,
+        blurb: pillar.blurb,
+        tone: pillar.tone,
+        can_edit: pillar.editable_by?(Current.membership),
+        editors: pillar.pillar_editors.map { person_json(_1.membership) },
+        moves: pillar.moves.map { move_json(_1) },
+      }
+    end
+
+    # A move and the series that advance it (LinkChips on the Vision screen).
+    def move_json(move)
+      { id: move.id, text: move.text,
+        sermon_series: move.sermon_series.sort_by(&:id).map { { id: _1.id, title: _1.title } } }
+    end
+
+    def year_json(year)
+      { year: year.year, headline: year.headline, goals: year.goals }
+    end
+
+    def ministry_json(ministry)
+      { key: ministry.key, name: ministry.name, color: ministry.color, position: ministry.position,
+        lead: person_json(ministry.lead_membership) }
+    end
+
     def ministries
       @ministries ||= Current.church.ministries.includes(lead_membership: :account).to_a
     end
