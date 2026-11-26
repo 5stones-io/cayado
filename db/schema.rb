@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_11_23_000002) do
+ActiveRecord::Schema[7.2].define(version: 2026_11_23_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -102,6 +102,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000002) do
     t.index ["owner_membership_id"], name: "index_cayado_attachments_on_owner_membership_id"
   end
 
+  create_table "cayado_budgets", force: :cascade do |t|
+    t.bigint "church_id", null: false
+    t.integer "year", null: false
+    t.bigint "monthly_cents", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["church_id", "year"], name: "index_cayado_budgets_on_church_id_and_year", unique: true
+  end
+
   create_table "cayado_comments", force: :cascade do |t|
     t.bigint "sermon_week_id", null: false
     t.bigint "membership_id"
@@ -110,6 +119,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000002) do
     t.datetime "updated_at", null: false
     t.index ["membership_id"], name: "index_cayado_comments_on_membership_id"
     t.index ["sermon_week_id"], name: "index_cayado_comments_on_sermon_week_id"
+  end
+
+  create_table "cayado_congregation_snapshots", force: :cascade do |t|
+    t.bigint "church_id", null: false
+    t.date "taken_on", null: false
+    t.integer "households"
+    t.jsonb "life_stages", default: [], null: false
+    t.jsonb "season_markers", default: [], null: false
+    t.text "note"
+    t.string "source", default: "manual", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["church_id", "taken_on"], name: "index_cayado_congregation_snapshots_on_church_id_and_taken_on"
   end
 
   create_table "cayado_horizon_years", force: :cascade do |t|
@@ -219,6 +241,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000002) do
     t.text "big_idea"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "congregation_snapshot_id"
+    t.index ["congregation_snapshot_id"], name: "index_cayado_sermon_weeks_on_congregation_snapshot_id"
     t.index ["preached_on"], name: "index_cayado_sermon_weeks_on_preached_on"
     t.index ["sermon_series_id"], name: "index_cayado_sermon_weeks_on_sermon_series_id"
   end
@@ -241,6 +265,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["church_id"], name: "index_cayado_visions_on_church_id", unique: true
+  end
+
+  create_table "cayado_weekly_metrics", force: :cascade do |t|
+    t.bigint "church_id", null: false
+    t.date "week_of", null: false
+    t.integer "attendance"
+    t.integer "first_time_guests"
+    t.bigint "giving_cents"
+    t.jsonb "by_ministry", default: [], null: false
+    t.string "label"
+    t.string "source", default: "manual", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["church_id", "week_of"], name: "index_cayado_weekly_metrics_on_church_id_and_week_of", unique: true
   end
 
   create_table "churches", force: :cascade do |t|
@@ -295,8 +333,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000002) do
   add_foreign_key "cayado_alignment_plans", "memberships", column: "updated_by_membership_id", on_delete: :nullify
   add_foreign_key "cayado_attachments", "churches"
   add_foreign_key "cayado_attachments", "memberships", column: "owner_membership_id", on_delete: :nullify
+  add_foreign_key "cayado_budgets", "churches"
   add_foreign_key "cayado_comments", "cayado_sermon_weeks", column: "sermon_week_id"
   add_foreign_key "cayado_comments", "memberships", on_delete: :nullify
+  add_foreign_key "cayado_congregation_snapshots", "churches"
   add_foreign_key "cayado_horizon_years", "cayado_visions", column: "vision_id"
   add_foreign_key "cayado_ministries", "churches"
   add_foreign_key "cayado_ministries", "memberships", column: "lead_membership_id", on_delete: :nullify
@@ -313,9 +353,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000002) do
   add_foreign_key "cayado_sermon_series", "cayado_moves", column: "move_id", on_delete: :nullify
   add_foreign_key "cayado_sermon_series", "churches"
   add_foreign_key "cayado_sermon_series", "memberships", column: "owner_membership_id", on_delete: :nullify
+  add_foreign_key "cayado_sermon_weeks", "cayado_congregation_snapshots", column: "congregation_snapshot_id", on_delete: :nullify
   add_foreign_key "cayado_sermon_weeks", "cayado_sermon_series", column: "sermon_series_id"
   add_foreign_key "cayado_topics", "churches"
   add_foreign_key "cayado_visions", "churches"
+  add_foreign_key "cayado_weekly_metrics", "churches"
   add_foreign_key "custom_domains", "churches"
   add_foreign_key "memberships", "accounts"
   add_foreign_key "memberships", "churches"

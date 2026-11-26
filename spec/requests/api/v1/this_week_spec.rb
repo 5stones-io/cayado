@@ -114,10 +114,50 @@ RSpec.describe "GET /api/v1/this_week", type: :request do
     ])
   end
 
-  it "leaves the health cards empty until Planning Center numbers exist" do
+  it "leaves the health cards empty until there are numbers" do
     get "/api/v1/this_week", headers: auth_headers(pastor.account)
 
     expect(json).to include("last_sunday" => nil, "congregation_note" => nil)
+  end
+
+  it "sums up last Sunday against the four before it and the budget" do
+    create(:budget, church: church, year: 2026, monthly_cents: 117_000_00)
+    [830, 840, 850, 860].each_with_index do |n, i|
+      create(:weekly_metric, church: church, week_of: Date.new(2026, 2, 15) - i.weeks, attendance: n)
+    end
+    create(:weekly_metric, church: church, week_of: Date.new(2026, 2, 22), attendance: 892,
+                           first_time_guests: 11, giving_cents: 28_400_00)
+
+    get "/api/v1/this_week", headers: auth_headers(pastor.account)
+
+    expect(json["last_sunday"]).to eq(
+      "week_of" => "2026-02-22", "attendance" => 892, "attendance_vs_avg" => 47,
+      "first_time_guests" => 11, "giving_cents" => 28_400_00,
+      "giving_budget_cents" => 27_000_00, "giving_vs_budget_pct" => 5
+    )
+  end
+
+  it "has no last Sunday when that Sunday's numbers aren't in yet" do
+    create(:weekly_metric, church: church, week_of: Date.new(2026, 2, 15), attendance: 850)
+
+    get "/api/v1/this_week", headers: auth_headers(pastor.account)
+
+    expect(json["last_sunday"]).to be_nil
+  end
+
+  it "shows the congregation snapshot pinned to the week ahead" do
+    snapshot = create(:congregation_snapshot, church: church, households: 412, note: "Lead with hope.",
+                                              life_stages: [{ "label" => "Young families with kids", "pct" => 32 }],
+                                              season_markers: [{ "label" => "births", "count" => 7 }])
+    create(:sermon_week, sermon_series: rooted, preached_on: Date.new(2026, 3, 1), congregation_snapshot: snapshot)
+
+    get "/api/v1/this_week", headers: auth_headers(pastor.account)
+
+    expect(json["congregation_note"]).to eq(
+      "id" => snapshot.id, "taken_on" => "2026-02-20", "households" => 412,
+      "life_stages" => [{ "label" => "Young families with kids", "pct" => 32 }],
+      "season_markers" => [{ "label" => "births", "count" => 7 }], "note" => "Lead with hope."
+    )
   end
 
   it "has no week, pulse or coming-up when nothing is planned ahead" do

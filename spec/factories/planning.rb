@@ -77,3 +77,23 @@ FactoryBot.define do
     url { "https://docs.google.com/document/d/abc/edit" }
   end
 end
+
+FactoryBot.define do
+  factory :weekly_metric, class: "Cayado::WeeklyMetric" do
+    association :church
+    sequence(:week_of) { |n| Date.new(2026, 1, 4) + n.weeks }
+    attendance { 800 }
+  end
+
+  factory :budget, class: "Cayado::Budget" do
+    association :church
+    year { 2026 }
+    monthly_cents { 117_000_00 }
+  end
+
+  factory :congregation_snapshot, class: "Cayado::CongregationSnapshot" do
+    association :church
+    taken_on { Date.new(2026, 2, 20) }
+    households { 412 }
+  end
+end

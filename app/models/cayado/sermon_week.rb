@@ -1,10 +1,13 @@
 module Cayado
   class SermonWeek < ApplicationRecord
     belongs_to :sermon_series, class_name: "Cayado::SermonSeries"
+    # Who's in the room that Sunday (Congregation's "Pin snapshot").
+    belongs_to :congregation_snapshot, optional: true, inverse_of: :pinned_weeks
     has_many :alignment_plans, dependent: :destroy
     has_many :comments, -> { order(:created_at, :id) }, dependent: :destroy, inverse_of: :sermon_week
 
     validates :preached_on, presence: true
+    validate { must_belong_to_church(:congregation_snapshot, congregation_snapshot, sermon_series&.church) }
 
     delegate :church, to: :sermon_series
 
