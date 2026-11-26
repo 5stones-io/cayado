@@ -62,4 +62,18 @@ FactoryBot.define do
     sermon_series { sermon_week&.sermon_series }
     data { {} }
   end
+
+  factory :roadmap_item, class: "Cayado::RoadmapItem" do
+    association :church
+    lane { "major_event" }
+    sequence(:title) { |n| "Event #{n}" }
+    starts_on { Date.new(2026, 4, 5) }
+    ends_on { starts_on }
+  end
+
+  factory :attachment, class: "Cayado::Attachment" do
+    association :attachable, factory: :roadmap_item
+    sequence(:title) { |n| "Doc #{n}" }
+    url { "https://docs.google.com/document/d/abc/edit" }
+  end
 end

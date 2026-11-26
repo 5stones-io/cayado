@@ -41,8 +41,21 @@ Cayado::Engine.routes.draw do
         post :seen
       end
 
+      # The year on one canvas. Series sit in their own lane; items are the rest.
+      resource :roadmap, only: [:show], controller: "roadmap"
+      resources :roadmap_items, only: [:show, :create, :update, :destroy] do
+        resources :attachments, only: [:index, :create]
+      end
+      resources :attachments, only: [:update, :destroy]
+
+      # The teaching-diet heatmap (index) and the topic library (admin).
+      resources :topics, only: [:index, :create, :update, :destroy]
+
       resources :sermon_series, only: [:index, :show, :create, :update, :destroy] do
         resources :weeks, only: [:create], controller: "sermon_weeks"
+        resources :attachments, only: [:index, :create]
+        # Admin: replace the topics this series carries ({weights: {topic_id => 1..3}}).
+        resource :topics, only: [:update], controller: "series_topics"
         # Admin: preview (GET) and send (POST) a heads-up to the ministry leads.
         resource :notify, only: [:show, :create], controller: "notify"
       end

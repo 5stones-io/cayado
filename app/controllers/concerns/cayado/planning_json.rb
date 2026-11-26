@@ -18,11 +18,11 @@ module Cayado
       }
     end
 
-    def advances_json(move)
-      return nil if move.nil?
+    # The AdvancesBadge: a pillar and, usually, one of its moves.
+    def advances_json(move, pillar: move&.pillar)
+      return nil if pillar.nil?
 
-      pillar = move.pillar
-      { pillar: { id: pillar.id, title: pillar.title, tone: pillar.tone }, move: { id: move.id, text: move.text } }
+      { pillar: { id: pillar.id, title: pillar.title, tone: pillar.tone }, move: move && { id: move.id, text: move.text } }
     end
 
     def series_json(series)
@@ -117,6 +117,40 @@ module Cayado
     def ministry_json(ministry)
       { key: ministry.key, name: ministry.name, color: ministry.color, position: ministry.position,
         lead: person_json(ministry.lead_membership) }
+    end
+
+    # One bar on the Roadmap. Series and items share the shape; `kind` says
+    # which endpoint edits it (sermon_series vs roadmap_items).
+    def roadmap_series_json(series)
+      {
+        kind: "sermon_series", id: series.id, lane: "sermon_series", title: series.title,
+        starts_on: series.starts_on, ends_on: series.ends_on, color: "ink", notes: series.theme,
+        owner: person_json(series.owner_membership), advances: advances_json(series.move),
+        attachments_count: series.attachments.size, can_edit: admin?,
+        weeks: series.weeks.map { { id: _1.id, position: _1.position, preached_on: _1.preached_on, title: _1.title } },
+      }
+    end
+
+    def roadmap_item_json(item)
+      {
+        kind: "roadmap_item", id: item.id, lane: item.lane, title: item.title,
+        starts_on: item.starts_on, ends_on: item.ends_on, color: item.color, notes: item.notes,
+        owner: person_json(item.owner_membership), advances: advances_json(item.move, pillar: item.pillar),
+        attachments_count: item.attachments.size, can_edit: admin?,
+      }
+    end
+
+    def attachment_json(attachment)
+      {
+        id: attachment.id, title: attachment.title, url: attachment.url, kind: attachment.kind,
+        owner: person_json(attachment.owner_membership), tags: attachment.tags,
+        can_edit: attachment.editable_by?(Current.membership), updated_at: attachment.updated_at,
+      }
+    end
+
+    def series_weights_json(series)
+      series.series_topics.sort_by { [_1.topic.position, _1.topic_id] }
+            .map { { topic_id: _1.topic_id, name: _1.topic.name, weight: _1.weight } }
     end
 
     def ministries

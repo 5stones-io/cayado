@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_11_23_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_11_23_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -86,6 +86,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000001) do
     t.index ["updated_by_membership_id"], name: "index_cayado_alignment_plans_on_updated_by_membership_id"
   end
 
+  create_table "cayado_attachments", force: :cascade do |t|
+    t.bigint "church_id", null: false
+    t.string "attachable_type", null: false
+    t.bigint "attachable_id", null: false
+    t.string "title", null: false
+    t.string "url", null: false
+    t.string "kind", default: "doc", null: false
+    t.bigint "owner_membership_id"
+    t.text "tags", default: [], null: false, array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["attachable_type", "attachable_id"], name: "index_cayado_attachments_on_attachable"
+    t.index ["church_id"], name: "index_cayado_attachments_on_church_id"
+    t.index ["owner_membership_id"], name: "index_cayado_attachments_on_owner_membership_id"
+  end
+
   create_table "cayado_comments", force: :cascade do |t|
     t.bigint "sermon_week_id", null: false
     t.bigint "membership_id"
@@ -148,6 +164,36 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000001) do
     t.index ["vision_id"], name: "index_cayado_pillars_on_vision_id"
   end
 
+  create_table "cayado_roadmap_items", force: :cascade do |t|
+    t.bigint "church_id", null: false
+    t.string "lane", null: false
+    t.string "title", null: false
+    t.date "starts_on", null: false
+    t.date "ends_on", null: false
+    t.string "color", default: "ink", null: false
+    t.bigint "owner_membership_id"
+    t.text "notes"
+    t.bigint "pillar_id"
+    t.bigint "move_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["church_id", "starts_on"], name: "index_cayado_roadmap_items_on_church_id_and_starts_on"
+    t.index ["move_id"], name: "index_cayado_roadmap_items_on_move_id"
+    t.index ["owner_membership_id"], name: "index_cayado_roadmap_items_on_owner_membership_id"
+    t.index ["pillar_id"], name: "index_cayado_roadmap_items_on_pillar_id"
+  end
+
+  create_table "cayado_series_topics", force: :cascade do |t|
+    t.bigint "sermon_series_id", null: false
+    t.bigint "topic_id", null: false
+    t.integer "weight", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["sermon_series_id", "topic_id"], name: "index_cayado_series_topics_on_sermon_series_id_and_topic_id", unique: true
+    t.index ["topic_id"], name: "index_cayado_series_topics_on_topic_id"
+    t.check_constraint "weight >= 1 AND weight <= 3", name: "series_topic_weight_1_to_3"
+  end
+
   create_table "cayado_sermon_series", force: :cascade do |t|
     t.bigint "church_id", null: false
     t.string "title", null: false
@@ -175,6 +221,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000001) do
     t.datetime "updated_at", null: false
     t.index ["preached_on"], name: "index_cayado_sermon_weeks_on_preached_on"
     t.index ["sermon_series_id"], name: "index_cayado_sermon_weeks_on_sermon_series_id"
+  end
+
+  create_table "cayado_topics", force: :cascade do |t|
+    t.bigint "church_id", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["church_id", "name"], name: "index_cayado_topics_on_church_id_and_name", unique: true
   end
 
   create_table "cayado_visions", force: :cascade do |t|
@@ -238,6 +293,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000001) do
   add_foreign_key "cayado_alignment_plans", "cayado_ministries", column: "ministry_id"
   add_foreign_key "cayado_alignment_plans", "cayado_sermon_weeks", column: "sermon_week_id"
   add_foreign_key "cayado_alignment_plans", "memberships", column: "updated_by_membership_id", on_delete: :nullify
+  add_foreign_key "cayado_attachments", "churches"
+  add_foreign_key "cayado_attachments", "memberships", column: "owner_membership_id", on_delete: :nullify
   add_foreign_key "cayado_comments", "cayado_sermon_weeks", column: "sermon_week_id"
   add_foreign_key "cayado_comments", "memberships", on_delete: :nullify
   add_foreign_key "cayado_horizon_years", "cayado_visions", column: "vision_id"
@@ -247,10 +304,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_23_000001) do
   add_foreign_key "cayado_pillar_editors", "cayado_pillars", column: "pillar_id"
   add_foreign_key "cayado_pillar_editors", "memberships", on_delete: :cascade
   add_foreign_key "cayado_pillars", "cayado_visions", column: "vision_id"
+  add_foreign_key "cayado_roadmap_items", "cayado_moves", column: "move_id", on_delete: :nullify
+  add_foreign_key "cayado_roadmap_items", "cayado_pillars", column: "pillar_id", on_delete: :nullify
+  add_foreign_key "cayado_roadmap_items", "churches"
+  add_foreign_key "cayado_roadmap_items", "memberships", column: "owner_membership_id", on_delete: :nullify
+  add_foreign_key "cayado_series_topics", "cayado_sermon_series", column: "sermon_series_id", on_delete: :cascade
+  add_foreign_key "cayado_series_topics", "cayado_topics", column: "topic_id", on_delete: :cascade
   add_foreign_key "cayado_sermon_series", "cayado_moves", column: "move_id", on_delete: :nullify
   add_foreign_key "cayado_sermon_series", "churches"
   add_foreign_key "cayado_sermon_series", "memberships", column: "owner_membership_id", on_delete: :nullify
   add_foreign_key "cayado_sermon_weeks", "cayado_sermon_series", column: "sermon_series_id"
+  add_foreign_key "cayado_topics", "churches"
   add_foreign_key "cayado_visions", "churches"
   add_foreign_key "custom_domains", "churches"
   add_foreign_key "memberships", "accounts"
