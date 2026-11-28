@@ -1,6 +1,9 @@
 class Church < ApplicationRecord
   STATUSES = %w[pending approved suspended].freeze
   DEFAULT_TIMEZONE = "America/Chicago".freeze
+  # A church provisioned by cayado.io starts on "tmp-<uuid>" until its owner
+  # claims a real address during onboarding (cayado-cloud).
+  TMP_SLUG_PREFIX = "tmp-".freeze
 
   has_many :memberships, dependent: :destroy
   has_many :accounts, through: :memberships
@@ -39,8 +42,26 @@ class Church < ApplicationRecord
     Time.current.in_time_zone(time_zone).to_date
   end
 
+  def placeholder_slug?
+    slug.start_with?(TMP_SLUG_PREFIX)
+  end
+
+  def pending?
+    status == "pending"
+  end
+
   def suspended?
     status == "suspended"
+  end
+
+  def approve!
+    update!(status: "approved")
+  end
+
+  # cayado-cloud calls this when a subscription lapses; a self-hosted install
+  # can use it from a console as a kill switch.
+  def suspend!
+    update!(status: "suspended")
   end
 
   # A verified primary custom domain, else default_hostname.
